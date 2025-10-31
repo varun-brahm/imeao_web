@@ -28,10 +28,10 @@ jobs:
           - "7.3"
           - "7.4"
           - "8.0"
-          
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup cache environment
         id: cache-env
@@ -42,7 +42,7 @@ jobs:
           key: ${{ env.key }}
 
       - name: Cache extensions
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ${{ steps.cache-env.outputs.dir }}
           key: ${{ steps.cache-env.outputs.key }}
@@ -54,26 +54,26 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
           ini-values: date.timezone='UTC'
-          
+
       - name: Determine composer cache directory on Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-            echo "COMPOSER_CACHE_DIR=$(composer config cache-dir)" >> $GITHUB_ENV
+          echo "COMPOSER_CACHE_DIR=$(composer config cache-dir)" >> $GITHUB_ENV
 
       - name: Determine composer cache directory on Windows
         if: matrix.os == 'windows-latest'
         run: |
-            echo "COMPOSER_CACHE_DIR=~\AppData\Local\Composer" >> $GITHUB_ENV
+          echo "COMPOSER_CACHE_DIR=~\AppData\Local\Composer" >> $GITHUB_ENV
 
       - name: Cache dependencies installed with composer
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
-          path: ${{ steps.cache-env.outputs.dir }}
-          key: php${{ matrix.php }}-composer-${{ matrix.dependencies }}-${{ hashFiles('**/composer.json') }}
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: php${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            php${{ matrix.php }}-composer-${{ matrix.dependencies }}-
+            php${{ matrix.php }}-composer-
 
-      - name: Install dependencies with composer php PHP [5.6 - 8.0]
+      - name: Install dependencies with composer (PHP 5.6 - 8.0)
         run: composer update --prefer-dist --no-interaction --no-progress --optimize-autoloader --ansi
 
       - name: Run tests with codeception
